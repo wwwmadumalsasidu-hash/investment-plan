@@ -35,9 +35,16 @@ function admin(){
 // Check login
 function checkLogin(){
     if(!user.email){
-        alert("Please register / login first");
         window.location.href="index.html";
+        return false;
     }
+}
+
+// Logout
+function logout(){
+    user.email="";
+    save();
+    window.location.href="index.html";
 }
 
 // Daily income simulation (demo 10 sec per day)
