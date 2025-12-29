@@ -5,22 +5,34 @@ if(!user){
     localStorage.setItem("user",JSON.stringify(user));
 }
 
-// Save user to localStorage
+// Save user
 function save(){
     localStorage.setItem("user",JSON.stringify(user));
+    showBalance();
 }
 
-// Admin hidden
+// Show messages
+function showMessage(txt){
+    alert(txt);
+}
+
+// Show balance
+function showBalance(){
+    const b = document.getElementById("balance");
+    if(b) b.innerText = "Balance: "+user.balance+" USDT";
+}
+
+// Admin hidden button
 function admin(){
     let pass = prompt("Enter admin code");
     if(pass!=="ADMIN123"){ alert("Access denied"); return;}
     let amt = prompt("New balance");
     user.balance=parseFloat(amt);
     save();
-    alert("Balance updated");
+    showMessage("Balance updated by admin!");
 }
 
-// Check if logged in
+// Check login
 function checkLogin(){
     if(!user.email){
         alert("Please register / login first");
@@ -28,13 +40,7 @@ function checkLogin(){
     }
 }
 
-// Display balance in header
-function showBalance(){
-    let b = document.getElementById("balance");
-    if(b) b.innerText = "Balance: "+user.balance+" USDT";
-}
-
-// Daily income simulation
+// Daily income simulation (demo 10 sec per day)
 setInterval(()=>{
     user.plans.forEach(plan=>{
         if(plan && plan.days>0){
@@ -43,5 +49,4 @@ setInterval(()=>{
         }
     });
     save();
-    showBalance();
-},1000*10); // demo: 10 sec per day
+},10000);
