@@ -41,12 +41,11 @@ function renderPlans(){
 
 function buyPlan(i){
     let p=plansData[i];
-    if(user.balance<p.price){ alert("Insufficient balance"); return;}
+    if(user.balance<p.price){ showMessage("Insufficient balance"); return;}
     user.balance-=p.price;
     user.plans[i]={days:p.days,income:p.income};
     save();
-    alert("Plan purchased!");
-    renderPlans();
+    showMessage("Plan purchased!");
 }
 </script>
 </body>
