@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Investment Plans</title>
+<link rel="stylesheet" href="style.css">
+<script src="main.js"></script>
+</head>
+<body onload="checkLogin();showBalance();renderPlans();">
+
+<header>
+  <span id="balance"></span>
+  <a href="deposit.html"><button>Deposit</button></a>
+  <a href="withdraw.html"><button>Withdraw</button></a>
+</header>
+
+<div id="plans"></div>
+
+<script>
+const plansData=[
+  {price:10,income:100,days:30},
+  {price:20,income:200,days:30},
+  {price:50,income:500,days:30}
+];
+
+function renderPlans(){
+    const box = document.getElementById("plans");
+    box.innerHTML="";
+    plansData.forEach((p,i)=>{
+        let active = user.plans[i];
+        box.innerHTML+=`
+        <div class="card">
+          <h4>Investment Plan</h4>
+          <p>Price: ${p.price} USDT</p>
+          <p>1 Day Income: ${p.income} USDT</p>
+          <p>Active Days: ${active?active.days:p.days}</p>
+          <button onclick="buyPlan(${i})">${active?"Active":"Buy Now"}</button>
+        </div>`;
+    });
+}
+
+function buyPlan(i){
+    let p=plansData[i];
+    if(user.balance<p.price){ alert("Insufficient balance"); return;}
+    user.balance-=p.price;
+    user.plans[i]={days:p.days,income:p.income};
+    save();
+    alert("Plan purchased!");
+    renderPlans();
+}
+</script>
+</body>
+</html>
