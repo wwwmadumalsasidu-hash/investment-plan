@@ -17,12 +17,12 @@
 
 <script>
 function register(){
-    if(document.getElementById("promo").value!=="PASIYA"){ alert("Invalid promo"); return;}
+    if(document.getElementById("promo").value!=="PASIYA"){ showMessage("Invalid promo code!"); return;}
     user.email=document.getElementById("email").value;
-    if(!user.email){ alert("Enter email"); return;}
-    if(user.balance===0) user.balance=1; // promo bonus
+    if(!user.email){ showMessage("Enter email!"); return;}
+    if(user.balance===0) user.balance=1; // initial bonus
     save();
-    alert("Registered! You won 1 USDT");
+    showMessage("🎉 Congratulations! You won 1 USDT");
     window.location.href="deposit.html";
 }
 </script>
