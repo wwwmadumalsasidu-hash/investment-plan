@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Withdraw</title>
+<link rel="stylesheet" href="style.css">
+<script src="main.js"></script>
+</head>
+<body onload="checkLogin();showBalance();">
+
+<header>
+  <span id="balance"></span>
+  <a href="deposit.html"><button>Deposit</button></a>
+  <a href="plans.html"><button>Investment Plans</button></a>
+</header>
+
+<div class="card">
+  <h3>Withdraw USDT</h3>
+  <p>Minimum: 2 USDT</p>
+  <input id="withdrawAddress" placeholder="Enter USDT TRC-20 address">
+  <input id="withdrawAmount" type="number" placeholder="Amount">
+  <button onclick="withdraw()">Withdraw</button>
+</div>
+
+<script>
+function withdraw(){
+  let amt=parseFloat(document.getElementById("withdrawAmount").value);
+  if(amt<2){alert("Minimum 2 USDT"); return;}
+  if(amt>user.balance){alert("Insufficient balance"); return;}
+  user.balance-=amt;
+  save();
+  alert("Withdraw successful!");
+  showBalance();
+}
+</script>
+</body>
+</html>
