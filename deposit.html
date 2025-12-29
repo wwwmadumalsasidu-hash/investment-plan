@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deposit</title>
+<link rel="stylesheet" href="style.css">
+<script src="main.js"></script>
+</head>
+<body onload="checkLogin();showBalance();">
+
+<header>
+  <span id="balance"></span>
+  <a href="plans.html"><button>Investment Plans</button></a>
+  <a href="withdraw.html"><button>Withdraw</button></a>
+</header>
+
+<div class="card">
+  <h3>Deposit USDT (TRC-20)</h3>
+  <p>Minimum: 50 USDT</p>
+  <input type="text" value="TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK" id="wallet" readonly>
+  <button onclick="copyAddress()">Copy Address</button>
+  <br><br>
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK" alt="QR Code">
+  <br><br>
+  <img src="wallet.png" alt="Deposit Screenshot" style="max-width:300px;border:1px solid #ccc;border-radius:10px;">
+</div>
+
+<script>
+function copyAddress(){
+    const wallet = document.getElementById("wallet");
+    wallet.select();
+    navigator.clipboard.writeText(wallet.value);
+    alert("Wallet address copied!");
+}
+</script>
+
+<!-- Admin hidden -->
+<button onclick="admin()" style="position:fixed;bottom:5px;right:5px;opacity:0.05">.</button>
+</body>
+</html>
