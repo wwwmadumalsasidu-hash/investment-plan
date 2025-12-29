@@ -24,14 +24,14 @@
 
 <script>
 function withdraw(){
-  let amt=parseFloat(document.getElementById("withdrawAmount").value);
-  if(amt<2){alert("Minimum 2 USDT"); return;}
-  if(amt>user.balance){alert("Insufficient balance"); return;}
-  user.balance-=amt;
-  save();
-  alert("Withdraw successful!");
-  showBalance();
+    let amt=parseFloat(document.getElementById("withdrawAmount").value);
+    if(amt<2){ showMessage("Minimum 2 USDT"); return;}
+    if(amt>user.balance){ showMessage("Insufficient balance"); return;}
+    user.balance-=amt;
+    save();
+    showMessage("Withdraw successful!");
 }
 </script>
+
 </body>
 </html>
