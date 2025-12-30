@@ -1,6 +1,7 @@
 <body onload="checkLogin();showBalance()">
 <header>
 <div id="balance"></div>
+<button onclick="adminUpdateBalance()" style="display:none" id="adminBtn">Admin</button>
 </header>
 
 <div class="box">
@@ -10,4 +11,11 @@
 </div>
 
 <script src="main.js"></script>
+<script>
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey && e.key==="A"){
+    document.getElementById("adminBtn").style.display="block";
+  }
+});
+</script>
 </body>
