@@ -2,9 +2,7 @@ let users = JSON.parse(localStorage.getItem("users")) || {};
 let currentUser = localStorage.getItem("currentUser");
 
 function saveUsers(){ localStorage.setItem("users", JSON.stringify(users)); }
-
 function checkLogin(){ if(!currentUser) window.location.href="index.html"; }
-
 function showBalance(){
   let el=document.getElementById("balance");
   if(el && users[currentUser]) el.innerText = "Balance: "+users[currentUser].balance+" USDT";
@@ -15,10 +13,8 @@ function register(){
   let email=document.getElementById("email").value;
   let pass=document.getElementById("password").value;
   let promo=document.getElementById("promo").value;
-
   if(promo!=="PASIYA"){ alert("Invalid promo code"); return; }
   if(users[email]){ alert("Account exists"); return; }
-
   users[email]={ password:pass, balance:1, plans:[] };
   saveUsers();
   localStorage.setItem("currentUser",email);
@@ -30,7 +26,7 @@ function register(){
 function login(){
   let email=document.getElementById("email").value;
   let pass=document.getElementById("password").value;
-  if(!users[email] || users[email].password!==pass){ alert("Wrong login"); return; }
+  if(!users[email] || users[email].password!==pass){ alert("Wrong email or password"); return; }
   localStorage.setItem("currentUser",email);
   window.location.href="home.html";
 }
