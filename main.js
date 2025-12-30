@@ -1,88 +1,145 @@
-body{
-  font-family: 'Segoe UI', Arial;
-  background: linear-gradient(135deg,#020617,#020617,#0f172a);
-  color:#fff;
-  margin:0;
+/* ================= DATABASE ================= */
+let users = JSON.parse(localStorage.getItem("users")) || {};
+let currentUser = localStorage.getItem("currentUser");
+
+/* ================= SAVE ================= */
+function saveUsers(){
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
-/* HEADER */
-header{
-  background:#020617;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  box-shadow:0 4px 20px rgba(0,0,0,.6);
+/* ================= CHECK LOGIN ================= */
+function checkLogin(){
+  if(!currentUser){
+    window.location.href = "index.html";
+  }
 }
 
-#balance{
-  font-size:18px;
-  font-weight:600;
-  color:#22c55e;
+/* ================= SHOW BALANCE ================= */
+function showBalance(){
+  let el = document.getElementById("balance");
+  if(el && users[currentUser]){
+    el.innerText = "Balance: " + users[currentUser].balance + " USDT";
+  }
 }
 
-/* CARD */
-.box{
-  background:#020617;
-  margin:20px auto;
-  padding:20px;
-  width:90%;
-  max-width:420px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.7);
+/* ================= REGISTER ================= */
+function register(){
+  let email = document.getElementById("email").value;
+  let pass  = document.getElementById("password").value;
+  let promo = document.getElementById("promo").value;
+
+  if(promo !== "PASIYA"){
+    alert("Invalid promo code");
+    return;
+  }
+
+  if(users[email]){
+    alert("Account already exists");
+    return;
+  }
+
+  users[email] = {
+    password: pass,
+    balance: 1,   // 🎉 Welcome bonus
+    plans: []
+  };
+
+  saveUsers();
+  localStorage.setItem("currentUser", email);
+  alert("🎉 Congratulations! You won 1 USDT");
+  window.location.href = "home.html";
 }
 
-/* INPUT */
-input{
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border:none;
-  border-radius:10px;
-  outline:none;
+/* ================= LOGIN ================= */
+function login(){
+  let email = document.getElementById("email").value;
+  let pass  = document.getElementById("password").value;
+
+  if(!users[email] || users[email].password !== pass){
+    alert("Wrong email or password");
+    return;
+  }
+
+  localStorage.setItem("currentUser", email);
+  window.location.href = "home.html";
 }
 
-/* BUTTON */
-button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border:none;
-  border-radius:12px;
-  font-weight:700;
-  cursor:pointer;
+/* ================= DEPOSIT ================= */
+function deposit(){
+  let amt = parseFloat(document.getElementById("amount").value);
+  if(amt < 50){
+    alert("Minimum deposit is 50 USDT");
+    return;
+  }
+  document.getElementById("depositBox").style.display = "block";
 }
 
-.green{
-  background:#22c55e;
-  color:#000;
+/* ================= BUY INVESTMENT PLAN ================= */
+/* ❗❗ PLANS LOGIC UNCHANGED ❗❗ */
+function buyPlan(cost, income){
+  let u = users[currentUser];
+
+  if(u.balance < cost){
+    alert("Insufficient balance");
+    return;
+  }
+
+  u.balance -= cost;
+  u.plans.push({
+    income: income,
+    days: 30
+  });
+
+  saveUsers();
+  showBalance();
+  alert("Investment plan activated (30 days)");
 }
 
-.blue{
-  background:#3b82f6;
-  color:#fff;
+/* ================= WITHDRAW ================= */
+function withdraw(){
+  let amt = parseFloat(document.getElementById("wAmount").value);
+  if(amt < 2){
+    alert("Minimum withdraw amount is 2 USDT");
+    return;
+  }
+  alert("Withdraw request successful");
 }
 
-.red{
-  background:#ef4444;
-  color:#fff;
+/* ================= ADMIN – UPDATE USER BALANCE ================= */
+/* 📱 PHONE FRIENDLY */
+function adminUpdateBalance(){
+  let key = prompt("Enter admin key");
+  if(key !== "ADMIN123"){
+    alert("Access denied");
+    return;
+  }
+
+  let email = prompt("Enter user email");
+  if(!users[email]){
+    alert("User not found");
+    return;
+  }
+
+  let newBal = prompt("Enter new balance (USDT)");
+  users[email].balance = parseFloat(newBal);
+
+  saveUsers();
+  alert("Balance updated successfully");
 }
 
-/* PLAN CARD */
-.plan{
-  border:1px solid #1f2933;
-  padding:15px;
-  margin:12px 0;
-  border-radius:14px;
-  background:#020617;
-}
+/* ================= DAILY INCOME (DEMO MODE) ================= */
+/* 10 seconds = 1 day (demo purpose) */
+setInterval(()=>{
+  if(!currentUser || !users[currentUser]) return;
 
-.plan h3{
-  margin:0;
-  color:#38bdf8;
-}
+  let u = users[currentUser];
+  u.plans.forEach(plan=>{
+    if(plan.days > 0){
+      u.balance += plan.income;
+      plan.days--;
+    }
+  });
 
-.plan p{
-  margin:6px 0;
-  color:#cbd5e1;
-}
+  saveUsers();
+  showBalance();
+}, 10000);
