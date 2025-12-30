@@ -1,37 +1,88 @@
 body{
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-  text-align:center;
+  font-family: 'Segoe UI', Arial;
+  background: linear-gradient(135deg,#020617,#020617,#0f172a);
+  color:#fff;
+  margin:0;
 }
 
-.box{
-  background:#111827;
-  padding:20px;
-  margin:20px auto;
-  width:90%;
-  max-width:400px;
-  border-radius:12px;
-}
-
-input{
-  width:90%;
-  padding:10px;
-  margin:5px;
-  border-radius:6px;
-}
-
-button{
-  padding:10px 20px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  background:#22c55e;
-  font-weight:bold;
-}
-
+/* HEADER */
 header{
+  background:#020617;
+  padding:15px;
   display:flex;
   justify-content:space-between;
-  padding:10px;
+  align-items:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+}
+
+#balance{
+  font-size:18px;
+  font-weight:600;
+  color:#22c55e;
+}
+
+/* CARD */
+.box{
+  background:#020617;
+  margin:20px auto;
+  padding:20px;
+  width:90%;
+  max-width:420px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.7);
+}
+
+/* INPUT */
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:10px;
+  outline:none;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.green{
+  background:#22c55e;
+  color:#000;
+}
+
+.blue{
+  background:#3b82f6;
+  color:#fff;
+}
+
+.red{
+  background:#ef4444;
+  color:#fff;
+}
+
+/* PLAN CARD */
+.plan{
+  border:1px solid #1f2933;
+  padding:15px;
+  margin:12px 0;
+  border-radius:14px;
+  background:#020617;
+}
+
+.plan h3{
+  margin:0;
+  color:#38bdf8;
+}
+
+.plan p{
+  margin:6px 0;
+  color:#cbd5e1;
 }
