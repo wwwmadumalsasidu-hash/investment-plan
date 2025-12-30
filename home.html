@@ -1,21 +1,31 @@
 <body onload="checkLogin();showBalance()">
-<header>
-<div id="balance"></div>
-<button onclick="adminUpdateBalance()" style="display:none" id="adminBtn">Admin</button>
+
+<header onclick="openAdmin()">
+  <div id="balance"></div>
+
+  <button id="adminBtn"
+    class="red"
+    onclick="adminUpdateBalance()"
+    style="display:none;width:auto">
+    ADMIN
+  </button>
 </header>
 
 <div class="box">
-<a href="deposit.html"><button>Deposit</button></a>
-<a href="plans.html"><button>Investment Plans</button></a>
-<a href="withdraw.html"><button>Withdraw</button></a>
+  <button class="blue" onclick="location.href='deposit.html'">Deposit</button>
+  <button class="blue" onclick="location.href='plans.html'">Investment Plans</button>
+  <button class="blue" onclick="location.href='withdraw.html'">Withdraw</button>
 </div>
 
 <script src="main.js"></script>
 <script>
-document.addEventListener("keydown",e=>{
-  if(e.ctrlKey && e.key==="A"){
+let tapCount=0;
+function openAdmin(){
+  tapCount++;
+  if(tapCount===5){
     document.getElementById("adminBtn").style.display="block";
+    alert("Admin mode enabled");
   }
-});
+}
 </script>
 </body>
