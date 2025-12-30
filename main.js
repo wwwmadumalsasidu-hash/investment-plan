@@ -34,7 +34,7 @@ function login(){
 /* DEPOSIT */
 function deposit(){
   let amt=parseFloat(document.getElementById("amount").value);
-  if(amt<50){ alert("Minimum deposit 50 USDT"); return; }
+  if(amt<50){ alert("Minimum deposit 20 USDT"); return; }
   document.getElementById("depositBox").style.display="block";
 }
 
