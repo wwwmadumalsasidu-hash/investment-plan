@@ -1,30 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Register / Login</title>
 <link rel="stylesheet" href="style.css">
-<script src="main.js"></script>
 </head>
 <body>
-<div class="card">
-  <h2>Create Account</h2>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <input id="promo" placeholder="Promo code">
-  <button onclick="register()">Register</button>
+<div class="box">
+<h2>Register / Login</h2>
+<input id="emailInput" placeholder="Email"><br>
+<input id="passwordInput" type="password" placeholder="Password"><br>
+<input id="promoInput" placeholder="Promo Code"><br>
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
 </div>
-
-<script>
-function register(){
-    if(document.getElementById("promo").value!=="PASIYA"){ showMessage("Invalid promo code!"); return;}
-    user.email=document.getElementById("email").value;
-    if(!user.email){ showMessage("Enter email!"); return;}
-    if(user.balance===0) user.balance=1; // initial bonus
-    save();
-    showMessage("🎉 Congratulations! You won 1 USDT");
-    window.location.href="deposit.html";
-}
-</script>
+<script src="main.js"></script>
 </body>
 </html>
