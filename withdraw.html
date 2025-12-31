@@ -1,7 +1,26 @@
-<link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Withdraw</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="checkLogin(); showBalance();">
+
 <div class="box">
-<h3>Withdraw</h3>
-<input id="wAmount" placeholder="Amount">
-<button class="red" onclick="withdraw()">Withdraw</button>
+  <h2>Withdraw USDT</h2>
+
+  <p id="balance">Balance: 0 USDT</p>
+
+  <input type="number" id="wAmount" placeholder="Enter withdraw amount (USDT)">
+
+  <!-- TRC20 Address -->
+  <input type="text" id="trc20" placeholder="Enter your TRC20 address" oninput="checkWithdrawFields()">
+
+  <button id="withdrawBtn" onclick="withdraw()" disabled>
+    Withdraw
+  </button>
 </div>
+
 <script src="main.js"></script>
+</body>
+</html>
