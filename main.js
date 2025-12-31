@@ -1,111 +1,170 @@
-// ====== Users & Current ======
+/***********************
+ GLOBAL DATA
+************************/
 let users = JSON.parse(localStorage.getItem("users")) || {};
 let currentUser = localStorage.getItem("currentUser");
 
-// ====== Save users to localStorage ======
-function saveUsers(){ localStorage.setItem("users", JSON.stringify(users)); }
-
-// ====== Check login ======
-function checkLogin(){ 
-    if(!currentUser) window.location.href="index.html"; 
+/***********************
+ HELPERS
+************************/
+function saveUsers(){
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
-// ====== Show balance ======
+function checkLogin(){
+  if(!currentUser){
+    window.location.href="login.html";
+  }
+}
+
 function showBalance(){
-  let el = document.getElementById("balance");
-  if(el && users[currentUser]) el.innerText = "Balance: "+users[currentUser].balance+" USDT";
+  let u = users[currentUser];
+  if(document.getElementById("balance")){
+    document.getElementById("balance").innerText =
+      "Balance: " + u.balance + " USDT";
+  }
 }
 
-// ====== REGISTER ======
+/***********************
+ REGISTER
+************************/
 function register(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("password").value;
-  let promo = document.getElementById("promo").value;
+  let email = regEmail.value;
+  let pass  = regPass.value;
+  let promo = promoCode.value;
 
-  if(promo !== "PASIYA"){ alert("Invalid promo code"); return; }
-  if(users[email]){ alert("Account exists"); return; }
+  if(promo !== "PASIYA"){
+    alert("Invalid promo code");
+    return;
+  }
 
-  users[email] = { password:pass, balance:1, plans:[] };
+  if(users[email]){
+    alert("User already exists");
+    return;
+  }
+
+  users[email] = {
+    password: pass,
+    balance: 1, // 🎁 bonus 1 USDT
+    plans: []
+  };
+
   saveUsers();
-  localStorage.setItem("currentUser", email);
   alert("🎉 Congratulations! You won 1 USDT");
-  window.location.href="home.html";
+  window.location.href="login.html";
 }
 
-// ====== LOGIN ======
+/***********************
+ LOGIN
+************************/
 function login(){
-  let email = document.getElementById("email").value;
-  let pass = document.getElementById("password").value;
+  let email = loginEmail.value;
+  let pass  = loginPass.value;
 
   if(!users[email] || users[email].password !== pass){
-      alert("Wrong email or password");
-      return;
+    alert("Invalid login details");
+    return;
   }
+
+  currentUser = email;
   localStorage.setItem("currentUser", email);
   window.location.href="home.html";
 }
 
-// ====== DEPOSIT ======
+/***********************
+ DEPOSIT (MIN 20)
+************************/
 function deposit(){
-  let amt = parseFloat(document.getElementById("amount").value);
+  let amt = parseFloat(depAmount.value);
 
-  // <-- Minimum deposit updated to 20
-  if(amt < 20){ alert("Minimum deposit 20 USDT"); return; }
+  if(amt < 20){
+    alert("Minimum deposit is 20 USDT");
+    return;
+  }
 
-  document.getElementById("depositBox").style.display="block";
+  document.getElementById("walletBox").style.display="block";
 }
 
-// ====== BUY PLAN ======
-function buyPlan(cost, income){
+/***********************
+ CONFIRM DEPOSIT (DEMO)
+************************/
+function confirmDeposit(){
+  let amt = parseFloat(depAmount.value);
   let u = users[currentUser];
-  if(u.balance < cost){ alert("Insufficient balance"); return; }
 
-  u.balance -= cost;
-  u.plans.push({income: income, days:30});
-  saveUsers(); 
-  showBalance();
-  alert("Investment plan activated (30 days)");
-}
-
-// ====== WITHDRAW ======
-function withdraw(){
-  let amt = parseFloat(document.getElementById("wAmount").value);
-  if(amt < 2){ alert("Minimum withdraw 2 USDT"); return; }
-
-  alert("Withdraw request successful");
-}
-
-// ====== ADMIN ======
-function adminUpdateBalance(){
-  let key = prompt("Enter admin key");
-  if(key !== "ADMIN123"){ alert("Access denied"); return; }
-
-  let email = prompt("Enter user email");
-  if(!users[email]){ alert("User not found"); return; }
-
-  let bal = prompt("Enter new balance (USDT)");
-  users[email].balance = parseFloat(bal);
+  u.balance += amt;
   saveUsers();
-  alert("Balance updated successfully");
+  showBalance();
+
+  alert("Deposit submitted successfully!");
 }
 
-// ====== DAILY INCOME DEMO ======
+/***********************
+ BUY PLAN
+************************/
+function buyPlan(price, income){
+  let u = users[currentUser];
+
+  if(u.balance < price){
+    alert("Insufficient balance");
+    return;
+  }
+
+  u.balance -= price;
+  u.plans.push({
+    income: income,
+    days: 30
+  });
+
+  saveUsers();
+  showBalance();
+  alert("Plan Activated (30 Days)");
+}
+
+/***********************
+ DAILY INCOME (DEMO TIMER)
+************************/
 setInterval(()=>{
-  if(!currentUser || !users[currentUser]) return;
+  if(!currentUser) return;
 
   let u = users[currentUser];
-  u.plans.forEach((p, i)=>{
+  u.plans.forEach(p=>{
     if(p.days > 0){
-      u.balance += p.income;
       p.days--;
-
-      // Update plan progress if progress bar exists
-      let dayEl = document.getElementById(`daysLeft${i+1}`);
-      let progressEl = document.getElementById(`progress${i+1}`);
-      if(dayEl) dayEl.innerText = p.days;
-      if(progressEl) progressEl.style.width = ((30-p.days)/30*100)+"%";
+      u.balance += p.income;
     }
   });
   saveUsers();
+}, 60000); // demo = 1 min = 1 day
+
+/***********************
+ WITHDRAW (MIN 5)
+************************/
+function checkWithdrawFields(){
+  let addr = trc20.value;
+  let amt  = wAmount.value;
+
+  withdrawBtn.disabled = !(addr.length > 15 && amt >= 5);
+}
+
+function withdraw(){
+  let amt = parseFloat(wAmount.value);
+  let addr = trc20.value;
+  let u = users[currentUser];
+
+  if(amt < 5){
+    alert("Minimum withdraw is 5 USDT");
+    return;
+  }
+
+  if(u.balance < amt){
+    alert("Insufficient balance");
+    return;
+  }
+
+  u.balance -= amt;
+  saveUsers();
   showBalance();
-}, 10000); // 10 seconds = demo daily income
+
+  alert("✅ Withdraw request submitted successfully!");
+      }
