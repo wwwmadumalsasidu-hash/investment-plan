@@ -1,144 +1,131 @@
-/* ===== STORAGE ===== */
+/* ================= STORAGE ================= */
 let users = JSON.parse(localStorage.getItem("users")) || {};
 let currentUser = localStorage.getItem("currentUser");
 
-/* ===== HELPERS ===== */
+/* ================= HELPERS ================= */
 function saveUsers() {
   localStorage.setItem("users", JSON.stringify(users));
 }
 
-function checkLogin() {
-  if (!currentUser || !users[currentUser]) {
-    location.href = "login.html";
-  }
-}
-
 function showBalance() {
-  const el = document.getElementById("balance");
-  if (el) {
-    el.innerText = "Balance: " + users[currentUser].balance + " USDT";
+  const b = document.getElementById("balance");
+  if (b && users[currentUser]) {
+    b.innerText = "Balance: " + users[currentUser].balance + " USDT";
   }
 }
 
-/* ===== AUTH ===== */
+/* ================= AUTH ================= */
 function register() {
-  const email = document.getElementById("regEmail").value.trim();
-  const pass = document.getElementById("regPass").value;
-  const promo = document.getElementById("promoCode").value;
+  const email = regEmail.value.trim();
+  const pass = regPass.value;
+  const promo = promoCode.value;
 
-  if (!email || !pass) {
-    alert("Fill all fields");
-    return;
-  }
-
-  if (promo !== "PASIYA") {
-    alert("Invalid Promo Code");
-    return;
-  }
-
-  if (users[email]) {
-    alert("User already exists");
-    return;
-  }
+  if (!email || !pass) return alert("Fill all fields");
+  if (promo !== "PASIYA") return alert("Invalid promo code");
+  if (users[email]) return alert("Account already exists");
 
   users[email] = {
     password: pass,
-    balance: 1,          // welcome bonus
+    balance: 1,          // 🎁 welcome bonus ONLY
     plans: [],
     pendingDeposit: 0
   };
 
   saveUsers();
-  alert("Registered successfully! You received 1 USDT");
+  alert("🎉 Congratulations! You won 1 USDT");
   location.href = "login.html";
 }
 
 function login() {
-  const email = document.getElementById("loginEmail").value.trim();
-  const pass = document.getElementById("loginPass").value;
+  const email = loginEmail.value.trim();
+  const pass = loginPass.value;
 
-  if (!users[email] || users[email].password !== pass) {
-    alert("Invalid email or password");
-    return;
-  }
+  if (!users[email] || users[email].password !== pass)
+    return alert("Invalid login");
 
   currentUser = email;
   localStorage.setItem("currentUser", email);
   location.href = "home.html";
 }
 
-/* ===== DEPOSIT ===== */
+/* ================= DEPOSIT ================= */
 function deposit() {
-  const amount = Number(document.getElementById("depAmount").value);
+  const amt = Number(depAmount.value);
 
-  if (amount < 20) {
-    alert("Minimum deposit amount is 20 USDT");
+  if (amt < 20) {
+    alert("Minimum deposit is 20 USDT");
     return;
   }
 
-  users[currentUser].pendingDeposit = amount;
+  // ❌ NO BALANCE CHANGE HERE
+  users[currentUser].pendingDeposit = amt;
   saveUsers();
 
-  const box = document.getElementById("walletBox");
-  if (box) box.style.display = "block";
+  document.getElementById("walletBox").style.display = "block";
 }
 
 function confirmDeposit() {
-  alert("Deposit submitted. Waiting for admin approval.");
-  document.getElementById("depAmount").value = "";
-  const box = document.getElementById("walletBox");
-  if (box) box.style.display = "none";
+  // ❌ ❌ ❌ NO balance += amount ❌ ❌ ❌
+  alert("Deposit submitted successfully. Waiting for confirmation.");
+  depAmount.value = "";
+  walletBox.style.display = "none";
 }
 
-/* ===== INVESTMENT PLAN (unchanged logic) ===== */
+/* ================= INVESTMENT PLANS ================= */
 function buyPlan(price, dailyIncome) {
-  const user = users[currentUser];
+  const u = users[currentUser];
 
-  if (user.balance < price) {
+  if (u.balance < price) {
     alert("Insufficient balance");
     return;
   }
 
-  user.balance -= price;
-  user.plans.push({
+  u.balance -= price;   // ✔ deduct only
+  u.plans.push({
     price: price,
     daily: dailyIncome,
-    days: 30
+    days: 30,
+    lastPaid: Date.now()
   });
 
   saveUsers();
   showBalance();
-  alert("Investment plan activated");
+  alert("Plan activated for 30 days");
 }
 
-/* ===== WITHDRAW ===== */
-function checkWithdrawFields() {
-  const amount = Number(document.getElementById("wAmount").value);
-  const addr = document.getElementById("trc20").value;
-  const btn = document.getElementById("withdrawBtn");
+/* ================= DAILY INCOME ================= */
+/* ⚠️ IMPORTANT: income only when admin allows OR manual call */
+function addDailyIncome() {
+  const u = users[currentUser];
+  const now = Date.now();
 
-  if (btn) {
-    btn.disabled = !(amount >= 5 && addr.length > 10);
-  }
+  u.plans.forEach(p => {
+    if (p.days > 0 && now - p.lastPaid >= 86400000) {
+      // ❌ COMMENT THIS if you DON'T want auto income
+      // u.balance += p.daily;
+
+      p.days--;
+      p.lastPaid = now;
+    }
+  });
+
+  saveUsers();
+  showBalance();
 }
 
+/* ================= WITHDRAW ================= */
 function withdraw() {
-  const amount = Number(document.getElementById("wAmount").value);
-  const user = users[currentUser];
+  const amt = Number(wAmount.value);
+  const addr = trc20.value;
 
-  if (amount < 5) {
-    alert("Minimum withdraw is 5 USDT");
-    return;
-  }
+  if (amt < 5) return alert("Minimum withdraw is 5 USDT");
+  if (!addr) return alert("Enter TRC20 address");
+  if (amt > users[currentUser].balance)
+    return alert("Insufficient balance");
 
-  if (amount > user.balance) {
-    alert("Not enough balance");
-    return;
-  }
-
-  user.balance -= amount;
+  users[currentUser].balance -= amt;
   saveUsers();
   showBalance();
 
-  alert("Withdraw request submitted");
-   }
+  alert("Withdraw request submitted successfully");
+    }
