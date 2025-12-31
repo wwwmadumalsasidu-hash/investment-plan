@@ -1,24 +1,25 @@
-/* ================= STORAGE ================= */
+/* ================== STORAGE ================== */
 let users = JSON.parse(localStorage.getItem("users")) || {};
 let currentUser = localStorage.getItem("currentUser");
 
-/* ================= HELPERS ================= */
+/* ================== SAVE ================== */
 function saveUsers() {
   localStorage.setItem("users", JSON.stringify(users));
 }
 
+/* ================== BALANCE SHOW ================== */
 function showBalance() {
-  const b = document.getElementById("balance");
-  if (b && users[currentUser]) {
-    b.innerText = "Balance: " + users[currentUser].balance + " USDT";
+  const el = document.getElementById("balance");
+  if (el && currentUser && users[currentUser]) {
+    el.innerText = "Balance: " + users[currentUser].balance + " USDT";
   }
 }
 
-/* ================= AUTH ================= */
+/* ================== AUTH ================== */
 function register() {
-  const email = regEmail.value.trim();
-  const pass = regPass.value;
-  const promo = promoCode.value;
+  const email = document.getElementById("regEmail").value.trim();
+  const pass = document.getElementById("regPass").value;
+  const promo = document.getElementById("promoCode").value;
 
   if (!email || !pass) return alert("Fill all fields");
   if (promo !== "PASIYA") return alert("Invalid promo code");
@@ -26,7 +27,7 @@ function register() {
 
   users[email] = {
     password: pass,
-    balance: 1,          // 🎁 welcome bonus ONLY
+    balance: 1,          // 🎁 welcome bonus only
     plans: [],
     pendingDeposit: 0
   };
@@ -37,27 +38,27 @@ function register() {
 }
 
 function login() {
-  const email = loginEmail.value.trim();
-  const pass = loginPass.value;
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
 
   if (!users[email] || users[email].password !== pass)
-    return alert("Invalid login");
+    return alert("Invalid email or password");
 
   currentUser = email;
   localStorage.setItem("currentUser", email);
   location.href = "home.html";
 }
 
-/* ================= DEPOSIT ================= */
+/* ================== DEPOSIT ================== */
 function deposit() {
-  const amt = Number(depAmount.value);
+  const amt = Number(document.getElementById("depAmount").value);
 
   if (amt < 20) {
     alert("Minimum deposit is 20 USDT");
     return;
   }
 
-  // ❌ NO BALANCE CHANGE HERE
+  // ❌ NO BALANCE ADD
   users[currentUser].pendingDeposit = amt;
   saveUsers();
 
@@ -65,13 +66,12 @@ function deposit() {
 }
 
 function confirmDeposit() {
-  // ❌ ❌ ❌ NO balance += amount ❌ ❌ ❌
-  alert("Deposit submitted successfully. Waiting for confirmation.");
-  depAmount.value = "";
-  walletBox.style.display = "none";
+  alert("✅ Deposit submitted. Waiting for admin approval.");
+  document.getElementById("depAmount").value = "";
+  document.getElementById("walletBox").style.display = "none";
 }
 
-/* ================= INVESTMENT PLANS ================= */
+/* ================== INVESTMENT PLANS ================== */
 function buyPlan(price, dailyIncome) {
   const u = users[currentUser];
 
@@ -90,36 +90,16 @@ function buyPlan(price, dailyIncome) {
 
   saveUsers();
   showBalance();
-  alert("Plan activated for 30 days");
+  alert("Plan activated (30 days)");
 }
 
-/* ================= DAILY INCOME ================= */
-/* ⚠️ IMPORTANT: income only when admin allows OR manual call */
-function addDailyIncome() {
-  const u = users[currentUser];
-  const now = Date.now();
-
-  u.plans.forEach(p => {
-    if (p.days > 0 && now - p.lastPaid >= 86400000) {
-      // ❌ COMMENT THIS if you DON'T want auto income
-      // u.balance += p.daily;
-
-      p.days--;
-      p.lastPaid = now;
-    }
-  });
-
-  saveUsers();
-  showBalance();
-}
-
-/* ================= WITHDRAW ================= */
+/* ================== WITHDRAW ================== */
 function withdraw() {
-  const amt = Number(wAmount.value);
-  const addr = trc20.value;
+  const amt = Number(document.getElementById("wAmount").value);
+  const addr = document.getElementById("trc20").value;
 
-  if (amt < 5) return alert("Minimum withdraw is 5 USDT");
   if (!addr) return alert("Enter TRC20 address");
+  if (amt < 5) return alert("Minimum withdraw is 5 USDT");
   if (amt > users[currentUser].balance)
     return alert("Insufficient balance");
 
@@ -128,4 +108,11 @@ function withdraw() {
   showBalance();
 
   alert("Withdraw request submitted successfully");
-    }
+}
+
+/* ================== PAGE LOAD ================== */
+window.onload = function () {
+  if (currentUser && users[currentUser]) {
+    showBalance();
+  }
+};
