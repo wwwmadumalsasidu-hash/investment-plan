@@ -1,12 +1,26 @@
-<link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Deposit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="checkLogin(); showBalance();">
+<div class="container">
+
 <div class="box">
-<h3>Deposit USDT</h3>
-<input id="amount" type="number" placeholder="Amount">
-<button class="green" onclick="deposit()">Deposit</button>
-<div id="depositBox" style="display:none">
-<p>USDT TRC20 Address:</p>
-<b>TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK</b>
-<img src="qr.png" width="200">
+  <h2>Deposit USDT</h2>
+  <input id="depAmount" type="number" placeholder="Minimum 20 USDT">
+  <button onclick="deposit()">Deposit</button>
+
+  <div id="walletBox">
+    <p>Your Wallet Address</p>
+    <b>TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK</b>
+    <img src="qr.png" alt="QR">
+    <button onclick="confirmDeposit()">I Have Paid</button>
+  </div>
 </div>
+
 </div>
 <script src="main.js"></script>
+</body>
+</html>
