@@ -1,4 +1,4 @@
-/* ================= FIREBASE IMPORTS ================= */
+// ================= FIREBASE IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -12,14 +12,12 @@ import {
   doc,
   setDoc,
   getDoc,
-  updateDoc,
   addDoc,
   collection,
-  arrayUnion,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ================= FIREBASE CONFIG ================= */
+// ================= FIREBASE CONFIG =================
 const firebaseConfig = {
   apiKey: "AIzaSyAf8nAXRMtLVfraFLuc5vDFwWvyGEToU9s",
   authDomain: "my-invesmant-app.firebaseapp.com",
@@ -29,81 +27,174 @@ const firebaseConfig = {
   appId: "1:939446002148:web:2806e17b50f3a4f8c167f1"
 };
 
-/* ================= INIT ================= */
+// ================= INIT =================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ================= CONSTANT ================= */
 const DEPOSIT_ADDRESS = "TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK";
 
-/* ================= AUTH CHECK ================= */
+// ================= AUTH STATE =================
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    localStorage.setItem("uid", user.uid);
+  }
+});
+
+// ================= REGISTER =================
+window.registerUser = async function () {
+  const email = document.getElementById("regEmail").value.trim();
+  const pass = document.getElementById("regPass").value;
+  const promo = document.getElementById("promoCode").value.trim();
+
+  if (!email || !pass) return alert("Fill all fields");
+  if (promo !== "PASIYA") return alert("Invalid promo code");
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+
+    await setDoc(doc(db, "members", cred.user.uid), {
+      email: email,
+      balance: 1,
+      createdAt: serverTimestamp()
+    });
+
+    alert("🎉 Registered successfully (1 USDT bonus)");
+    location.href = "login.html";
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+// ================= LOGIN =================
+window.loginUser = async function () {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    location.href = "home.html";
+  } catch (e) {
+    alert("Invalid email or password");
+  }
+};
+
+// ================= CHECK AUTH =================
 window.checkAuth = function () {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      window.location.href = "login.html";
-    } else {
-      localStorage.setItem("uid", user.uid);
+      location.href = "login.html";
     }
   });
 };
 
-/* ================= SHOW BALANCE ================= */
+// ================= SHOW BALANCE =================
 window.showBalance = async function () {
   const uid = localStorage.getItem("uid");
   if (!uid) return;
 
   const snap = await getDoc(doc(db, "members", uid));
   if (snap.exists()) {
+    const bal = snap.data().balance || 0;
     const el = document.getElementById("balance");
-    if (el) {
-      el.innerText = "Balance: " + snap.data().balance + " USDT";
-    }
+    if (el) el.innerText = "Balance: " + bal + " USDT";
   }
 };
 
-/* ================= DEPOSIT ================= */
+// ================= DEPOSIT =================
 window.deposit = function () {
   const amt = Number(document.getElementById("depAmount").value);
-
-  if (amt < 20) {
-    alert("Minimum deposit is 20 USDT");
-    return;
-  }
-
+  if (amt < 20) return alert("Minimum deposit is 20 USDT");
   document.getElementById("walletBox").style.display = "block";
 };
 
-/* ================= CONFIRM DEPOSIT ================= */
 window.confirmDeposit = async function () {
-  const uid = localStorage.getItem("uid");
   const amt = Number(document.getElementById("depAmount").value);
+  const uid = localStorage.getItem("uid");
 
-  if (!uid) return alert("Login required");
   if (amt < 20) return alert("Minimum deposit is 20 USDT");
 
-  try {
-    await addDoc(collection(db, "deposits"), {
-      uid: uid,
-      amount: amt,
-      walletAddress: DEPOSIT_ADDRESS,
-      network: "USDT-TRC20",
-      status: "pending",
-      createdAt: serverTimestamp()
-    });
+  await addDoc(collection(db, "deposits"), {
+    uid: uid,
+    amount: amt,
+    address: DEPOSIT_ADDRESS,
+    network: "TRC20",
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
 
-    alert("✅ Deposit submitted. Waiting for admin approval.");
-
-    document.getElementById("walletBox").style.display = "none";
-    document.getElementById("depAmount").value = "";
-  } catch (e) {
-    alert("Deposit failed");
-  }
+  alert("✅ Deposit submitted. Waiting for approval.");
+  document.getElementById("walletBox").style.display = "none";
+  document.getElementById("depAmount").value = "";
 };
 
-/* ================= LOGOUT ================= */
+// ================= BUY PLAN =================
+window.buyPlan = async function (price, daily) {
+  const uid = localStorage.getItem("uid");
+  const ref = doc(db, "members", uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+  if (data.balance < price) {
+    alert("Insufficient balance");
+    return;
+  }
+
+  await setDoc(ref, {
+    balance: data.balance - price
+  }, { merge: true });
+
+  await addDoc(collection(db, "plans"), {
+    uid: uid,
+    price: price,
+    dailyIncome: daily,
+    days: 30,
+    status: "active",
+    createdAt: serverTimestamp()
+  });
+
+  alert("✅ Plan activated");
+  showBalance();
+};
+
+// ================= WITHDRAW =================
+window.withdraw = async function () {
+  const amt = Number(document.getElementById("wAmount").value);
+  const addr = document.getElementById("wAddress").value.trim();
+  const uid = localStorage.getItem("uid");
+
+  if (!addr) return alert("Enter wallet address");
+  if (amt < 5) return alert("Minimum withdraw is 5 USDT");
+
+  const ref = doc(db, "members", uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return;
+
+  const bal = snap.data().balance;
+  if (amt > bal) return alert("Insufficient balance");
+
+  await setDoc(ref, {
+    balance: bal - amt
+  }, { merge: true });
+
+  await addDoc(collection(db, "withdraws"), {
+    uid: uid,
+    amount: amt,
+    address: addr,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("✅ Withdraw request submitted");
+  showBalance();
+};
+
+// ================= LOGOUT =================
 window.logout = async function () {
   await signOut(auth);
-  localStorage.removeItem("uid");
-  window.location.href = "login.html";
+  localStorage.clear();
+  location.href = "login.html";
 };
