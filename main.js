@@ -43,12 +43,19 @@ onAuthStateChanged(auth, (user) => {
 
 // ================= REGISTER =================
 window.registerUser = async function () {
-  const email = document.getElementById("regEmail").value.trim();
-  const pass = document.getElementById("regPass").value;
-  const promo = document.getElementById("promoCode").value.trim();
+  const email = document.getElementById("regEmail")?.value.trim();
+  const pass = document.getElementById("regPass")?.value;
+  const promo = document.getElementById("promoCode")?.value.trim();
 
-  if (!email || !pass) return alert("Fill all fields");
-  if (promo !== "PASIYA") return alert("Invalid promo code");
+  if (!email || !pass) {
+    alert("Fill all fields");
+    return;
+  }
+
+  if (promo !== "PASIYA") {
+    alert("Invalid promo code");
+    return;
+  }
 
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
@@ -59,8 +66,8 @@ window.registerUser = async function () {
       createdAt: serverTimestamp()
     });
 
-    alert("🎉 Registered successfully (1 USDT bonus)");
-    location.href = "login.html";
+    alert("🎉 Registration successful (1 USDT bonus)");
+    window.location.href = "login.html";
   } catch (e) {
     alert(e.message);
   }
@@ -68,14 +75,19 @@ window.registerUser = async function () {
 
 // ================= LOGIN =================
 window.loginUser = async function () {
-  const email = document.getElementById("loginEmail").value.trim();
-  const pass = document.getElementById("loginPass").value;
+  const email = document.getElementById("loginEmail")?.value.trim();
+  const pass = document.getElementById("loginPass")?.value;
+
+  if (!email || !pass) {
+    alert("Enter email and password");
+    return;
+  }
 
   try {
     await signInWithEmailAndPassword(auth, email, pass);
-    location.href = "home.html";
+    window.location.href = "home.html";
   } catch (e) {
-    alert("Invalid email or password");
+    alert("Login failed: " + e.message);
   }
 };
 
@@ -83,7 +95,7 @@ window.loginUser = async function () {
 window.checkAuth = function () {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      location.href = "login.html";
+      window.location.href = "login.html";
     }
   });
 };
@@ -103,16 +115,19 @@ window.showBalance = async function () {
 
 // ================= DEPOSIT =================
 window.deposit = function () {
-  const amt = Number(document.getElementById("depAmount").value);
-  if (amt < 20) return alert("Minimum deposit is 20 USDT");
+  const amt = Number(document.getElementById("depAmount")?.value);
+  if (amt < 20) {
+    alert("Minimum deposit is 20 USDT");
+    return;
+  }
   document.getElementById("walletBox").style.display = "block";
 };
 
 window.confirmDeposit = async function () {
-  const amt = Number(document.getElementById("depAmount").value);
+  const amt = Number(document.getElementById("depAmount")?.value);
   const uid = localStorage.getItem("uid");
 
-  if (amt < 20) return alert("Minimum deposit is 20 USDT");
+  if (amt < 20) return;
 
   await addDoc(collection(db, "deposits"), {
     uid: uid,
@@ -161,12 +176,19 @@ window.buyPlan = async function (price, daily) {
 
 // ================= WITHDRAW =================
 window.withdraw = async function () {
-  const amt = Number(document.getElementById("wAmount").value);
-  const addr = document.getElementById("wAddress").value.trim();
+  const amt = Number(document.getElementById("wAmount")?.value);
+  const addr = document.getElementById("wAddress")?.value.trim();
   const uid = localStorage.getItem("uid");
 
-  if (!addr) return alert("Enter wallet address");
-  if (amt < 5) return alert("Minimum withdraw is 5 USDT");
+  if (!addr) {
+    alert("Enter wallet address");
+    return;
+  }
+
+  if (amt < 5) {
+    alert("Minimum withdraw is 5 USDT");
+    return;
+  }
 
   const ref = doc(db, "members", uid);
   const snap = await getDoc(ref);
@@ -174,7 +196,10 @@ window.withdraw = async function () {
   if (!snap.exists()) return;
 
   const bal = snap.data().balance;
-  if (amt > bal) return alert("Insufficient balance");
+  if (amt > bal) {
+    alert("Insufficient balance");
+    return;
+  }
 
   await setDoc(ref, {
     balance: bal - amt
@@ -196,5 +221,5 @@ window.withdraw = async function () {
 window.logout = async function () {
   await signOut(auth);
   localStorage.clear();
-  location.href = "login.html";
+  window.location.href = "login.html";
 };
