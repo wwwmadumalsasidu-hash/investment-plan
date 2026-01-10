@@ -5,14 +5,23 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="container">
   <div class="box">
     <h2>Login</h2>
-    <input id="loginEmail" placeholder="Email">
-    <input id="loginPass" type="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPass" placeholder="Password" required>
+
+    <button onclick="loginUser()">Login</button>
+
+    <p>
+      Don't have an account?
+      <a href="register.html">Register</a>
+    </p>
   </div>
 </div>
-<script src="main.js"></script>
+
+<script type="module" src="main.js"></script>
 </body>
 </html>
