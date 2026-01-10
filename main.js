@@ -13,6 +13,8 @@ import {
   setDoc,
   getDoc,
   updateDoc,
+  addDoc,
+  collection,
   arrayUnion,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -32,66 +34,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ================= REGISTER ================= */
-window.registerUser = async function () {
-  const email = document.getElementById("regEmail")?.value.trim();
-  const pass = document.getElementById("regPass")?.value;
-  const promo = document.getElementById("promoCode")?.value;
-
-  if (!email || !pass) {
-    alert("Fill all fields");
-    return;
-  }
-
-  if (promo !== "PASIYA") {
-    alert("Invalid promo code");
-    return;
-  }
-
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    const uid = cred.user.uid;
-
-    await setDoc(doc(db, "members", uid), {
-      email: email,
-      promoCode: promo,
-      balance: 1, // 🎁 welcome bonus
-      plans: [],
-      pendingDeposit: 0,
-      createdAt: serverTimestamp()
-    });
-
-    alert("🎉 Registration successful! 1 USDT added");
-    window.location.href = "login.html";
-  } catch (err) {
-    alert(err.message);
-  }
-};
-
-/* ================= LOGIN ================= */
-window.loginUser = async function () {
-  const email = document.getElementById("loginEmail")?.value.trim();
-  const pass = document.getElementById("loginPass")?.value;
-
-  if (!email || !pass) {
-    alert("Enter email & password");
-    return;
-  }
-
-  try {
-    const cred = await signInWithEmailAndPassword(auth, email, pass);
-    localStorage.setItem("uid", cred.user.uid);
-    window.location.href = "home.html";
-  } catch (err) {
-    alert("Invalid login details");
-  }
-};
+/* ================= CONSTANT ================= */
+const DEPOSIT_ADDRESS = "TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK";
 
 /* ================= AUTH CHECK ================= */
 window.checkAuth = function () {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       window.location.href = "login.html";
+    } else {
+      localStorage.setItem("uid", user.uid);
     }
   });
 };
@@ -103,87 +55,50 @@ window.showBalance = async function () {
 
   const snap = await getDoc(doc(db, "members", uid));
   if (snap.exists()) {
-    const balEl = document.getElementById("balance");
-    if (balEl) {
-      balEl.innerText = "Balance: " + snap.data().balance + " USDT";
+    const el = document.getElementById("balance");
+    if (el) {
+      el.innerText = "Balance: " + snap.data().balance + " USDT";
     }
   }
 };
 
 /* ================= DEPOSIT ================= */
-window.deposit = async function () {
-  const uid = localStorage.getItem("uid");
-  const amt = Number(document.getElementById("depAmount")?.value);
+window.deposit = function () {
+  const amt = Number(document.getElementById("depAmount").value);
 
   if (amt < 20) {
     alert("Minimum deposit is 20 USDT");
     return;
   }
 
-  await updateDoc(doc(db, "members", uid), {
-    pendingDeposit: amt
-  });
-
-  alert("Deposit request sent");
+  document.getElementById("walletBox").style.display = "block";
 };
 
-/* ================= BUY PLAN ================= */
-window.buyPlan = async function (price, daily) {
+/* ================= CONFIRM DEPOSIT ================= */
+window.confirmDeposit = async function () {
   const uid = localStorage.getItem("uid");
-  const ref = doc(db, "members", uid);
-  const snap = await getDoc(ref);
+  const amt = Number(document.getElementById("depAmount").value);
 
-  if (!snap.exists()) return;
+  if (!uid) return alert("Login required");
+  if (amt < 20) return alert("Minimum deposit is 20 USDT");
 
-  if (snap.data().balance < price) {
-    alert("Insufficient balance");
-    return;
+  try {
+    await addDoc(collection(db, "deposits"), {
+      uid: uid,
+      amount: amt,
+      walletAddress: DEPOSIT_ADDRESS,
+      network: "USDT-TRC20",
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    alert("✅ Deposit submitted. Waiting for admin approval.");
+
+    document.getElementById("walletBox").style.display = "none";
+    document.getElementById("depAmount").value = "";
+  } catch (e) {
+    alert("Deposit failed");
   }
-
-  await updateDoc(ref, {
-    balance: snap.data().balance - price,
-    plans: arrayUnion({
-      price: price,
-      daily: daily,
-      days: 30,
-      lastPaid: Date.now()
-    })
-  });
-
-  showBalance();
-  alert("Plan activated");
-};
-
-/* ================= WITHDRAW ================= */
-window.withdraw = async function () {
-  const uid = localStorage.getItem("uid");
-  const amt = Number(document.getElementById("wAmount")?.value);
-  const addr = document.getElementById("trc20")?.value;
-
-  if (!addr) {
-    alert("Enter wallet address");
-    return;
-  }
-
-  if (amt < 5) {
-    alert("Minimum withdraw is 5 USDT");
-    return;
-  }
-
-  const ref = doc(db, "members", uid);
-  const snap = await getDoc(ref);
-
-  if (amt > snap.data().balance) {
-    alert("Insufficient balance");
-    return;
-  }
-
-  await updateDoc(ref, {
-    balance: snap.data().balance - amt
-  });
-
-  showBalance();
-  alert("Withdraw request sent");
 };
 
 /* ================= LOGOUT ================= */
