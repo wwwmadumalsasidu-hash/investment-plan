@@ -1,20 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="container">
   <div class="box">
-    <h2>Register</h2>
-    <input id="regEmail" placeholder="Email">
-    <input id="regPass" type="password" placeholder="Password">
-    <input id="promoCode" placeholder="Promo Code">
-    <button onclick="register()">Register</button>
-    <p>Already have account? <a href="login.html">Login</a></p>
+    <h2>Create Account</h2>
+
+    <input
+      type="email"
+      id="email"
+      placeholder="Email address"
+      required
+    >
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Password"
+      required
+    >
+
+    <input
+      type="text"
+      id="promoCode"
+      placeholder="Promo Code (optional)"
+    >
+
+    <button onclick="registerUser()">Register</button>
+
+    <p>
+      Already have an account?
+      <a href="login.html">Login</a>
+    </p>
   </div>
 </div>
-<script src="main.js"></script>
+
+<!-- Firebase + JS -->
+<script type="module" src="main.js"></script>
+
 </body>
-</html>
+  </html>
