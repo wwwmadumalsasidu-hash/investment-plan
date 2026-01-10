@@ -4,23 +4,48 @@
   <title>Deposit</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body onload="checkLogin(); showBalance();">
+<body>
+
 <div class="container">
 
-<div class="box">
-  <h2>Deposit USDT</h2>
-  <input id="depAmount" type="number" placeholder="Minimum 20 USDT">
-  <button onclick="deposit()">Deposit</button>
+  <div class="box">
+    <h2>Deposit USDT</h2>
 
-  <div id="walletBox">
-    <p>Your Wallet Address</p>
-    <b>TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK</b>
-    <img src="qr.png">
-    <button onclick="confirmDeposit()">I Have Paid</button>
+    <input
+      id="depAmount"
+      type="number"
+      placeholder="Minimum 20 USDT"
+    >
+
+    <button onclick="deposit()">Deposit</button>
+
+    <div id="walletBox" style="display:none; margin-top:15px;">
+      <p><b>Send USDT (TRC20 ONLY)</b></p>
+
+      <p>Deposit Address</p>
+      <b id="depositAddress">
+        TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK
+      </b>
+
+      <br><br>
+      <img src="qr.png" width="150">
+
+      <p style="color:red; font-size:13px;">
+        ⚠️ Send ONLY USDT (TRC20).  
+        Wrong network = permanent loss.
+      </p>
+
+      <button onclick="confirmDeposit()">I Have Paid</button>
+    </div>
   </div>
-</div>
 
 </div>
-<script src="main.js"></script>
+
+<script type="module" src="main.js"></script>
+<script type="module">
+  checkAuth();
+  showBalance();
+</script>
+
 </body>
 </html>
