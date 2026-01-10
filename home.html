@@ -4,18 +4,31 @@
   <title>Home</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body onload="checkLogin(); showBalance();">
+<body>
+
 <div class="container">
 
-  <div class="balance-box" id="balance"></div>
+  <div class="balance-box" id="balance">
+    Balance: --
+  </div>
 
   <div class="box">
     <button onclick="location.href='deposit.html'">Deposit</button>
     <button onclick="location.href='plans.html'">Investment Plans</button>
     <button onclick="location.href='withdraw.html'">Withdraw</button>
+    <button onclick="logout()">Logout</button>
   </div>
 
 </div>
-<script src="main.js"></script>
+
+<!-- Firebase JS -->
+<script type="module" src="main.js"></script>
+
+<!-- Page init -->
+<script type="module">
+  checkAuth();
+  showBalance();
+</script>
+
 </body>
 </html>
