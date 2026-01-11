@@ -14,6 +14,7 @@ import {
   getDoc,
   addDoc,
   collection,
+  getDocs,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -35,9 +36,10 @@ const db = getFirestore(app);
 const DEPOSIT_ADDRESS = "TLVKwm4u9DQiXgbxwyYn3WBpvvZNGyN8sK";
 
 // ================= AUTH STATE =================
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (user) {
     localStorage.setItem("uid", user.uid);
+    loadNotification(); // 🔔 show notification on login
   }
 });
 
@@ -63,6 +65,7 @@ window.registerUser = async function () {
     await setDoc(doc(db, "members", cred.user.uid), {
       email: email,
       balance: 1,
+      bonusClaimed: false,
       createdAt: serverTimestamp()
     });
 
@@ -94,9 +97,7 @@ window.loginUser = async function () {
 // ================= CHECK AUTH =================
 window.checkAuth = function () {
   onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-    }
+    if (!user) window.location.href = "login.html";
   });
 };
 
@@ -107,10 +108,31 @@ window.showBalance = async function () {
 
   const snap = await getDoc(doc(db, "members", uid));
   if (snap.exists()) {
-    const bal = snap.data().balance || 0;
-    const el = document.getElementById("balance");
-    if (el) el.innerText = "Balance: " + bal + " USDT";
+    document.getElementById("balance").innerText =
+      "Balance: " + snap.data().balance + " USDT";
   }
+};
+
+// ================= CLAIM 500 USDT BONUS =================
+window.claimBonus = async function () {
+  const uid = localStorage.getItem("uid");
+  const ref = doc(db, "members", uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return;
+
+  if (snap.data().bonusClaimed === true) {
+    alert("Bonus already claimed");
+    return;
+  }
+
+  await setDoc(ref, {
+    balance: snap.data().balance + 500,
+    bonusClaimed: true
+  }, { merge: true });
+
+  alert("✅ 500 USDT bonus added to your balance");
+  showBalance();
 };
 
 // ================= DEPOSIT =================
@@ -130,7 +152,7 @@ window.confirmDeposit = async function () {
   if (amt < 20) return;
 
   await addDoc(collection(db, "deposits"), {
-    uid: uid,
+    uid,
     amount: amt,
     address: DEPOSIT_ADDRESS,
     network: "TRC20",
@@ -139,39 +161,6 @@ window.confirmDeposit = async function () {
   });
 
   alert("✅ Deposit submitted. Waiting for approval.");
-  document.getElementById("walletBox").style.display = "none";
-  document.getElementById("depAmount").value = "";
-};
-
-// ================= BUY PLAN =================
-window.buyPlan = async function (price, daily) {
-  const uid = localStorage.getItem("uid");
-  const ref = doc(db, "members", uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) return;
-
-  const data = snap.data();
-  if (data.balance < price) {
-    alert("Insufficient balance");
-    return;
-  }
-
-  await setDoc(ref, {
-    balance: data.balance - price
-  }, { merge: true });
-
-  await addDoc(collection(db, "plans"), {
-    uid: uid,
-    price: price,
-    dailyIncome: daily,
-    days: 30,
-    status: "active",
-    createdAt: serverTimestamp()
-  });
-
-  alert("✅ Plan activated");
-  showBalance();
 };
 
 // ================= WITHDRAW =================
@@ -185,28 +174,39 @@ window.withdraw = async function () {
     return;
   }
 
-  if (amt < 5) {
-    alert("Minimum withdraw is 5 USDT");
-    return;
+  const snap = await getDoc(doc(db, "members", uid));
+  const bal = snap.data().balance;
+
+  // 🔴 BONUS RULE
+  if (snap.data().bonusClaimed === true) {
+    const depSnap = await getDocs(collection(db, "deposits"));
+    let totalDeposit = 0;
+
+    depSnap.forEach(d => {
+      if (d.data().uid === uid && d.data().status === "approved") {
+        totalDeposit += d.data().amount;
+      }
+    });
+
+    if (totalDeposit < 100) {
+      alert(
+        "To withdraw the bonus amount, you must deposit at least 100 USDT."
+      );
+      return;
+    }
   }
 
-  const ref = doc(db, "members", uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) return;
-
-  const bal = snap.data().balance;
   if (amt > bal) {
     alert("Insufficient balance");
     return;
   }
 
-  await setDoc(ref, {
+  await setDoc(doc(db, "members", uid), {
     balance: bal - amt
   }, { merge: true });
 
   await addDoc(collection(db, "withdraws"), {
-    uid: uid,
+    uid,
     amount: amt,
     address: addr,
     status: "pending",
@@ -223,3 +223,23 @@ window.logout = async function () {
   localStorage.clear();
   window.location.href = "login.html";
 };
+
+// ================= NOTIFICATION =================
+function showNotify(title, msg) {
+  document.getElementById("notifyTitle").innerText = title;
+  document.getElementById("notifyMsg").innerText = msg;
+  document.getElementById("notification").style.display = "block";
+}
+
+window.closeNotify = function () {
+  document.getElementById("notification").style.display = "none";
+};
+
+async function loadNotification() {
+  const snap = await getDocs(collection(db, "notifications"));
+  snap.forEach(d => {
+    if (d.data().active === true) {
+      showNotify(d.data().title, d.data().message);
+    }
+  });
+}
