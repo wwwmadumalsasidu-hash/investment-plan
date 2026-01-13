@@ -127,7 +127,7 @@ window.claimBonus = async function () {
   }
 
   await setDoc(ref, {
-    balance: snap.data().balance + 500,
+    balance: snap.data().balance ,
     bonusClaimed: true
   }, { merge: true });
 
@@ -138,8 +138,8 @@ window.claimBonus = async function () {
 // ================= DEPOSIT =================
 window.deposit = function () {
   const amt = Number(document.getElementById("depAmount")?.value);
-  if (amt < 20) {
-    alert("Minimum deposit is 20 USDT");
+  if (amt < 40) {
+    alert("Minimum deposit is 40 USDT");
     return;
   }
   document.getElementById("walletBox").style.display = "block";
@@ -149,7 +149,7 @@ window.confirmDeposit = async function () {
   const amt = Number(document.getElementById("depAmount")?.value);
   const uid = localStorage.getItem("uid");
 
-  if (amt < 20) return;
+  if (amt < 40) return;
 
   await addDoc(collection(db, "deposits"), {
     uid,
